@@ -10,12 +10,9 @@ namespace LangLearn.Backend.Services;
 
 public class AuthService(AppDbContext db, IConfiguration config)
 {
-    private readonly AppDbContext _db = db;
-    private readonly IConfiguration _config = config;
-
     public async Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
-        if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+        if (await db.Users.AnyAsync(u => u.Email == request.Email))
         {
             return new AuthResult(false, "Email already in use.");
         }
@@ -26,36 +23,40 @@ public class AuthService(AppDbContext db, IConfiguration config)
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
         };
 
-        _db.Users.Add(user);
+        db.Users.Add(user);
 
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         return new AuthResult(true, "Registration successful.");
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
             return new AuthResult(false, "Invalid credentials.");
         }
 
-        var token = GenerateJwtToknen(user);
+        var token = GenerateJwtToken(user);
 
         return new AuthResult(true, "Login successful.", token);
     }
 
-    private string GenerateJwtToknen(User user)
+    private string GenerateJwtToken(User user)
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email)
+            // include user ID as subject and name identifier for claim resolution
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            // include email for reference
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Email, user.Email)
         };
 
-        var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? "default_secret_key");
+        var key = Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? "default_secret_key");
         var creds = new SigningCredentials(
             new SymmetricSecurityKey(key),
             SecurityAlgorithms.HmacSha256);

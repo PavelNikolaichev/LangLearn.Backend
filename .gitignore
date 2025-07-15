@@ -6,3 +6,6 @@ obj/
 LangLearn.Backend/obj/
 LangLearn.Backend/bin/
 bin/
+
+*.db
+
