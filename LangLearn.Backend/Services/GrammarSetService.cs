@@ -1,4 +1,5 @@
 using LangLearn.Backend.Data;
+using LangLearn.Backend.Dtos;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,19 +14,21 @@ public class GrammarSetService
         _db = db;
     }
 
-    public async Task<IEnumerable<GrammarSet>> GetUserGrammarSetsAsync(Guid userId)
+    public async Task<IEnumerable<GrammarSetDto>> GetUserGrammarSetsAsync(Guid userId)
     {
-        return await _db.GrammarSets
+        var grammarSets = await _db.GrammarSets
             .Where(gs => gs.UserId == userId)
             .Include(gs => gs.Grammars)
             .ToListAsync();
+        return grammarSets.Select(MapGrammarSetToDto);
     }
 
-    public async Task<GrammarSet?> GetGrammarSetByIdAsync(Guid id, Guid userId)
+    public async Task<GrammarSetDto?> GetGrammarSetByIdAsync(Guid id, Guid userId)
     {
-        return await _db.GrammarSets
+        var grammarSet = await _db.GrammarSets
             .Include(gs => gs.Grammars)
             .FirstOrDefaultAsync(gs => gs.Id == id && gs.UserId == userId);
+        return grammarSet == null ? null : MapGrammarSetToDto(grammarSet);
     }
 
     public async Task<GrammarSet> CreateGrammarSetAsync(GrammarSet grammarSet, Guid userId)
@@ -66,5 +69,30 @@ public class GrammarSetService
         _db.GrammarSets.Remove(grammarSet);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private static GrammarSetDto MapGrammarSetToDto(GrammarSet grammarSet)
+    {
+        return new GrammarSetDto
+        {
+            Id = grammarSet.Id,
+            Name = grammarSet.Name,
+            Description = grammarSet.Description,
+            CreatedAt = grammarSet.CreatedAt,
+            UpdatedAt = grammarSet.UpdatedAt,
+            Grammars = grammarSet.Grammars?.Select(MapGrammarToDto).ToList() ?? new List<GrammarDto>()
+        };
+    }
+
+    private static GrammarDto MapGrammarToDto(Grammar grammar)
+    {
+        return new GrammarDto
+        {
+            Id = grammar.Id,
+            Name = grammar.Name,
+            Description = grammar.Description,
+            CreatedAt = grammar.CreatedAt,
+            UpdatedAt = grammar.UpdatedAt
+        };
     }
 }

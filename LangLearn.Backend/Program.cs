@@ -12,7 +12,16 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=LangLearn.db"));
+{
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        options.UseInMemoryDatabase("InMemoryLangLearnTestDb");
+    }
+    else
+    {
+        options.UseSqlite("Data Source=LangLearn.db");
+    }
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -35,8 +44,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Console.WriteLine(context.Exception.Message);
                 if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                 {
-                    context.Response.Headers.Add("Token-Expired", "true");
+                    context.Response.Headers.Append("Token-Expired", "true");
                 }
+
                 return Task.CompletedTask;
             }
         };
@@ -317,3 +327,5 @@ app.MapDelete("/grammarsets/{setId}/grammars/{grammarId}",
 app.MapGet("/", () => "Hello World!");
 
 app.Run();
+
+public partial class Program { }

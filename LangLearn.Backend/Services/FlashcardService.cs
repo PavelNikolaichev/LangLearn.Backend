@@ -1,4 +1,5 @@
 using LangLearn.Backend.Data;
+using LangLearn.Backend.Dtos;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,21 +14,21 @@ public class FlashcardService
         _db = db;
     }
 
-    public async Task<IEnumerable<Flashcard>> GetDeckFlashcardsAsync(Guid deckId, Guid userId)
+    public async Task<IEnumerable<FlashcardDto>> GetDeckFlashcardsAsync(Guid deckId, Guid userId)
     {
         var deck = await _db.Decks.Include(d => d.Flashcards)
             .FirstOrDefaultAsync(d => d.Id == deckId && d.UserId == userId);
-        
-        return deck?.Flashcards ?? new List<Flashcard>();
+        return deck?.Flashcards?.Select(MapFlashcardToDto).ToList() ?? new List<FlashcardDto>();
     }
 
-    public async Task<Flashcard?> GetFlashcardByIdAsync(Guid flashcardId, Guid deckId, Guid userId)
+    public async Task<FlashcardDto?> GetFlashcardByIdAsync(Guid flashcardId, Guid deckId, Guid userId)
     {
-        return await _db.Flashcards
+        var flashcard = await _db.Flashcards
             .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
                                       fc.DeckId == deckId && 
                                       fc.Deck != null && 
                                       fc.Deck.UserId == userId);
+        return flashcard == null ? null : MapFlashcardToDto(flashcard);
     }
 
     public async Task<Flashcard?> CreateFlashcardAsync(Flashcard flashcard, Guid deckId, Guid userId)
@@ -61,6 +62,7 @@ public class FlashcardService
 
         flashcard.Front = updatedFlashcard.Front;
         flashcard.Back = updatedFlashcard.Back;
+        flashcard.Notes = updatedFlashcard.Notes ?? flashcard.Notes;
         flashcard.UpdatedAt = DateTime.UtcNow;
 
         _db.Flashcards.Update(flashcard);
@@ -83,5 +85,18 @@ public class FlashcardService
         _db.Flashcards.Remove(flashcard);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private static FlashcardDto MapFlashcardToDto(Flashcard flashcard)
+    {
+        return new FlashcardDto
+        {
+            Id = flashcard.Id,
+            Front = flashcard.Front,
+            Back = flashcard.Back,
+            Notes = flashcard.Notes,
+            CreatedAt = flashcard.CreatedAt,
+            UpdatedAt = flashcard.UpdatedAt
+        };
     }
 }

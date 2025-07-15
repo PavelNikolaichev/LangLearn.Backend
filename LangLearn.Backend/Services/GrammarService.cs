@@ -1,4 +1,5 @@
 using LangLearn.Backend.Data;
+using LangLearn.Backend.Dtos;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,20 +14,20 @@ public class GrammarService
         _db = db;
     }
 
-    public async Task<IEnumerable<Grammar>> GetGrammarSetGrammarsAsync(Guid setId, Guid userId)
+    public async Task<IEnumerable<GrammarDto>> GetGrammarSetGrammarsAsync(Guid setId, Guid userId)
     {
         var grammarSet = await _db.GrammarSets.Include(gs => gs.Grammars)
             .FirstOrDefaultAsync(gs => gs.Id == setId && gs.UserId == userId);
-        
-        return grammarSet?.Grammars ?? new List<Grammar>();
+        return grammarSet?.Grammars?.Select(MapGrammarToDto).ToList() ?? new List<GrammarDto>();
     }
 
-    public async Task<Grammar?> GetGrammarByIdAsync(Guid grammarId, Guid setId, Guid userId)
+    public async Task<GrammarDto?> GetGrammarByIdAsync(Guid grammarId, Guid setId, Guid userId)
     {
-        return await _db.Grammars
+        var grammar = await _db.Grammars
             .FirstOrDefaultAsync(g => g.Id == grammarId && 
                                      g.GrammarSetId == setId && 
                                      g.UserId == userId);
+        return grammar == null ? null : MapGrammarToDto(grammar);
     }
 
     public async Task<Grammar?> CreateGrammarAsync(Grammar grammar, Guid setId, Guid userId)
@@ -80,5 +81,17 @@ public class GrammarService
         _db.Grammars.Remove(grammar);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private static GrammarDto MapGrammarToDto(Grammar grammar)
+    {
+        return new GrammarDto
+        {
+            Id = grammar.Id,
+            Name = grammar.Name,
+            Description = grammar.Description,
+            CreatedAt = grammar.CreatedAt,
+            UpdatedAt = grammar.UpdatedAt
+        };
     }
 }
