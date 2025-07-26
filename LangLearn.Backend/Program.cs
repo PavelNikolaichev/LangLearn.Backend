@@ -110,18 +110,18 @@ app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapPost("/auth/register", async (RegisterRequest request, AuthService authService) =>
+app.MapPost("/auth/register", async (RegisterRequestDto requestDto, AuthService authService) =>
 {
-    var result = await authService.RegisterAsync(request);
+    var result = await authService.RegisterAsync(requestDto);
 
     return result.Success
         ? Results.Ok(result)
         : Results.BadRequest(result.Message);
 });
 
-app.MapPost("/auth/login", async (LoginRequest request, AuthService authService) =>
+app.MapPost("/auth/login", async (LoginRequestDto requestDto, AuthService authService) =>
 {
-    var result = await authService.LoginAsync(request);
+    var result = await authService.LoginAsync(requestDto);
 
     return result.Success
         ? Results.Ok(result)

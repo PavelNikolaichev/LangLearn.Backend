@@ -11,17 +11,17 @@ namespace LangLearn.Backend.Services;
 
 public class AuthService(AppDbContext db, IConfiguration config)
 {
-    public async Task<AuthResultDto> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResultDto> RegisterAsync(RegisterRequestDto requestDto)
     {
-        if (await db.Users.AnyAsync(u => u.Email == request.Email))
+        if (await db.Users.AnyAsync(u => u.Email == requestDto.Email))
         {
             return new AuthResultDto(false, "Email already in use.");
         }
 
         var user = new User
         {
-            Email = request.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Email = requestDto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(requestDto.Password),
         };
 
         db.Users.Add(user);
@@ -31,11 +31,11 @@ public class AuthService(AppDbContext db, IConfiguration config)
         return new AuthResultDto(true, "Registration successful.");
     }
 
-    public async Task<AuthResultDto> LoginAsync(LoginRequest request)
+    public async Task<AuthResultDto> LoginAsync(LoginRequestDto requestDto)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == requestDto.Email);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(requestDto.Password, user.PasswordHash))
         {
             return new AuthResultDto(false, "Invalid credentials.");
         }

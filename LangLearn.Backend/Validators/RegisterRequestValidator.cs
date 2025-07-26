@@ -1,9 +1,10 @@
 using FluentValidation;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Models;
 
 namespace LangLearn.Backend.Validators;
 
-public abstract class RegisterRequestValidator : AbstractValidator<RegisterRequest>
+public abstract class RegisterRequestValidator : AbstractValidator<RegisterRequestDto>
 {
     protected RegisterRequestValidator()
     {
