@@ -1,22 +1,15 @@
 using LangLearn.Backend.Data;
-using LangLearn.Backend.Dtos;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LangLearn.Backend.Services;
 
-public class DeckService
+public class DeckService(AppDbContext db)
 {
-    private readonly AppDbContext _db;
-
-    public DeckService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<DeckDto>> GetUserDecksAsync(Guid userId)
     {
-        var decks = await _db.Decks
+        var decks = await db.Decks
             .Where(d => d.UserId == userId)
             .Include(d => d.Flashcards)
             .ToListAsync();
@@ -25,7 +18,7 @@ public class DeckService
 
     public async Task<DeckDto?> GetDeckByIdAsync(Guid id, Guid userId)
     {
-        var deck = await _db.Decks
+        var deck = await db.Decks
             .Include(d => d.Flashcards)
             .FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
         return deck == null ? null : MapDeckToDto(deck);
@@ -38,15 +31,15 @@ public class DeckService
         deck.CreatedAt = DateTime.UtcNow;
         deck.UpdatedAt = DateTime.UtcNow;
 
-        _db.Decks.Add(deck);
-        await _db.SaveChangesAsync();
+        db.Decks.Add(deck);
+        await db.SaveChangesAsync();
 
         return deck;
     }
 
     public async Task<Deck?> UpdateDeckAsync(Guid id, Deck updatedDeck, Guid userId)
     {
-        var existingDeck = await _db.Decks.FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
+        var existingDeck = await db.Decks.FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
         if (existingDeck == null)
             return null;
 
@@ -54,20 +47,20 @@ public class DeckService
         existingDeck.Description = updatedDeck.Description;
         existingDeck.UpdatedAt = DateTime.UtcNow;
 
-        _db.Decks.Update(existingDeck);
-        await _db.SaveChangesAsync();
+        db.Decks.Update(existingDeck);
+        await db.SaveChangesAsync();
 
         return existingDeck;
     }
 
     public async Task<bool> DeleteDeckAsync(Guid id, Guid userId)
     {
-        var deck = await _db.Decks.FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
+        var deck = await db.Decks.FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
         if (deck == null)
             return false;
 
-        _db.Decks.Remove(deck);
-        await _db.SaveChangesAsync();
+        db.Decks.Remove(deck);
+        await db.SaveChangesAsync();
         return true;
     }
 

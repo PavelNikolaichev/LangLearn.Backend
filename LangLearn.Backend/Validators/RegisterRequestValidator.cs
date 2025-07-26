@@ -3,9 +3,9 @@ using LangLearn.Backend.Models;
 
 namespace LangLearn.Backend.Validators;
 
-public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
+public abstract class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
-    public RegisterRequestValidator()
+    protected RegisterRequestValidator()
     {
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required.")

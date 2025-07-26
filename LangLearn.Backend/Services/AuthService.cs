@@ -5,16 +5,17 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using LangLearn.Backend.Dto;
 
 namespace LangLearn.Backend.Services;
 
 public class AuthService(AppDbContext db, IConfiguration config)
 {
-    public async Task<AuthResult> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResultDto> RegisterAsync(RegisterRequest request)
     {
         if (await db.Users.AnyAsync(u => u.Email == request.Email))
         {
-            return new AuthResult(false, "Email already in use.");
+            return new AuthResultDto(false, "Email already in use.");
         }
 
         var user = new User
@@ -27,21 +28,50 @@ public class AuthService(AppDbContext db, IConfiguration config)
 
         await db.SaveChangesAsync();
 
-        return new AuthResult(true, "Registration successful.");
+        return new AuthResultDto(true, "Registration successful.");
     }
 
-    public async Task<AuthResult> LoginAsync(LoginRequest request)
+    public async Task<AuthResultDto> LoginAsync(LoginRequest request)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            return new AuthResult(false, "Invalid credentials.");
+            return new AuthResultDto(false, "Invalid credentials.");
         }
 
         var token = GenerateJwtToken(user);
 
-        return new AuthResult(true, "Login successful.", token);
+        return new AuthResultDto(true, "Login successful.", token);
+    }
+
+    public async Task<AuthResultDto> RefreshTokenAsync(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        try
+        {
+            var jwtToken = handler.ReadJwtToken(token);
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return new AuthResultDto(false, "Invalid token.");
+            }
+
+            var user = await db.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return new AuthResultDto(false, "User not found.");
+            }
+
+            // Generate a new token
+            var newToken = GenerateJwtToken(user);
+            return new AuthResultDto(true, "Token refreshed successfully.", newToken);
+        }
+        catch (Exception)
+        {
+            return new AuthResultDto(false, "Invalid token.");
+        }
     }
 
     private string GenerateJwtToken(User user)
@@ -69,5 +99,3 @@ public class AuthService(AppDbContext db, IConfiguration config)
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-
-public record AuthResult(bool Success, string Message, string? Token = null);

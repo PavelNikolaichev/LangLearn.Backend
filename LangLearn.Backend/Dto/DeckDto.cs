@@ -1,7 +1,6 @@
-namespace LangLearn.Backend.Dtos;
+using LangLearn.Backend.Dto;
 
-using System;
-using System.Collections.Generic;
+namespace LangLearn.Backend.Dto;
 
 public class DeckDto
 {

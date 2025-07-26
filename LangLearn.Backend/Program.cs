@@ -3,6 +3,7 @@ using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using LangLearn.Backend.Data;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Models;
 using LangLearn.Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        x => x.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -93,6 +102,8 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseCors("AllowAllOrigins");
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -124,6 +135,14 @@ app.MapGet("/auth", (ClaimsPrincipal user) =>
 
     return userId.HasValue
         ? Results.Ok(new { userId = userId.Value, email })
+        : Results.Unauthorized();
+}).RequireAuthorization();
+
+app.MapPost("/auth/refresh", async (RefreshTokenRequestDto request, AuthService authService) =>
+{
+    var result = await authService.RefreshTokenAsync(request.Token);
+    return result.Success
+        ? Results.Ok(new { token = result.Token })
         : Results.Unauthorized();
 }).RequireAuthorization();
 

@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
-using LangLearn.Backend.Dtos;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Services;
 using Xunit;
 
@@ -26,7 +26,7 @@ public class DeckIntegrationTests(CustomWebApplicationFactory factory) : IClassF
         // Login
         var loginResp = await _client.PostAsJsonAsync("/auth/login", new { email, password });
         loginResp.EnsureSuccessStatusCode();
-        var loginResult = await loginResp.Content.ReadFromJsonAsync<AuthResult>();
+        var loginResult = await loginResp.Content.ReadFromJsonAsync<AuthResultDto>();
         return loginResult!.Token!;
     }
 

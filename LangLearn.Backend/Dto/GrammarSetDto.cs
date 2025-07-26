@@ -1,4 +1,4 @@
-namespace LangLearn.Backend.Dtos;
+namespace LangLearn.Backend.Dto;
 
 using System;
 using System.Collections.Generic;

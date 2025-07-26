@@ -1,29 +1,22 @@
 using LangLearn.Backend.Data;
-using LangLearn.Backend.Dtos;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LangLearn.Backend.Services;
 
-public class FlashcardService
+public class FlashcardService(AppDbContext db)
 {
-    private readonly AppDbContext _db;
-
-    public FlashcardService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<FlashcardDto>> GetDeckFlashcardsAsync(Guid deckId, Guid userId)
     {
-        var deck = await _db.Decks.Include(d => d.Flashcards)
+        var deck = await db.Decks.Include(d => d.Flashcards)
             .FirstOrDefaultAsync(d => d.Id == deckId && d.UserId == userId);
         return deck?.Flashcards?.Select(MapFlashcardToDto).ToList() ?? new List<FlashcardDto>();
     }
 
     public async Task<FlashcardDto?> GetFlashcardByIdAsync(Guid flashcardId, Guid deckId, Guid userId)
     {
-        var flashcard = await _db.Flashcards
+        var flashcard = await db.Flashcards
             .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
                                       fc.DeckId == deckId && 
                                       fc.Deck != null && 
@@ -33,7 +26,7 @@ public class FlashcardService
 
     public async Task<Flashcard?> CreateFlashcardAsync(Flashcard flashcard, Guid deckId, Guid userId)
     {
-        var deck = await _db.Decks.FirstOrDefaultAsync(d => d.Id == deckId && d.UserId == userId);
+        var deck = await db.Decks.FirstOrDefaultAsync(d => d.Id == deckId && d.UserId == userId);
         if (deck == null)
             return null;
 
@@ -43,15 +36,15 @@ public class FlashcardService
         flashcard.CreatedAt = DateTime.UtcNow;
         flashcard.UpdatedAt = DateTime.UtcNow;
 
-        _db.Flashcards.Add(flashcard);
-        await _db.SaveChangesAsync();
+        db.Flashcards.Add(flashcard);
+        await db.SaveChangesAsync();
 
         return flashcard;
     }
 
     public async Task<Flashcard?> UpdateFlashcardAsync(Guid flashcardId, Guid deckId, Flashcard updatedFlashcard, Guid userId)
     {
-        var flashcard = await _db.Flashcards
+        var flashcard = await db.Flashcards
             .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
                                       fc.DeckId == deckId && 
                                       fc.Deck != null && 
@@ -65,15 +58,15 @@ public class FlashcardService
         flashcard.Notes = updatedFlashcard.Notes ?? flashcard.Notes;
         flashcard.UpdatedAt = DateTime.UtcNow;
 
-        _db.Flashcards.Update(flashcard);
-        await _db.SaveChangesAsync();
+        db.Flashcards.Update(flashcard);
+        await db.SaveChangesAsync();
 
         return flashcard;
     }
 
     public async Task<bool> DeleteFlashcardAsync(Guid flashcardId, Guid deckId, Guid userId)
     {
-        var flashcard = await _db.Flashcards
+        var flashcard = await db.Flashcards
             .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
                                       fc.DeckId == deckId && 
                                       fc.Deck != null && 
@@ -82,8 +75,8 @@ public class FlashcardService
         if (flashcard == null)
             return false;
 
-        _db.Flashcards.Remove(flashcard);
-        await _db.SaveChangesAsync();
+        db.Flashcards.Remove(flashcard);
+        await db.SaveChangesAsync();
         return true;
     }
 

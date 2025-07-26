@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Services;
 using Xunit;
 
@@ -30,7 +31,7 @@ public class AuthIntegrationTests(CustomWebApplicationFactory factory) : IClassF
         // Act - Login
         var loginResponse = await _client.PostAsJsonAsync("/auth/login", new { email, password });
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var authResult = await loginResponse.Content.ReadFromJsonAsync<AuthResult>();
+        var authResult = await loginResponse.Content.ReadFromJsonAsync<AuthResultDto>();
         authResult.Should().NotBeNull();
         authResult!.Success.Should().BeTrue();
         authResult.Token.Should().NotBeNullOrEmpty();

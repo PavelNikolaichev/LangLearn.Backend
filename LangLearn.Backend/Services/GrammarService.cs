@@ -1,29 +1,22 @@
 using LangLearn.Backend.Data;
-using LangLearn.Backend.Dtos;
+using LangLearn.Backend.Dto;
 using LangLearn.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LangLearn.Backend.Services;
 
-public class GrammarService
+public class GrammarService(AppDbContext db)
 {
-    private readonly AppDbContext _db;
-
-    public GrammarService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<GrammarDto>> GetGrammarSetGrammarsAsync(Guid setId, Guid userId)
     {
-        var grammarSet = await _db.GrammarSets.Include(gs => gs.Grammars)
+        var grammarSet = await db.GrammarSets.Include(gs => gs.Grammars)
             .FirstOrDefaultAsync(gs => gs.Id == setId && gs.UserId == userId);
         return grammarSet?.Grammars?.Select(MapGrammarToDto).ToList() ?? new List<GrammarDto>();
     }
 
     public async Task<GrammarDto?> GetGrammarByIdAsync(Guid grammarId, Guid setId, Guid userId)
     {
-        var grammar = await _db.Grammars
+        var grammar = await db.Grammars
             .FirstOrDefaultAsync(g => g.Id == grammarId && 
                                      g.GrammarSetId == setId && 
                                      g.UserId == userId);
@@ -32,7 +25,7 @@ public class GrammarService
 
     public async Task<Grammar?> CreateGrammarAsync(Grammar grammar, Guid setId, Guid userId)
     {
-        var grammarSet = await _db.GrammarSets.FirstOrDefaultAsync(gs => gs.Id == setId && gs.UserId == userId);
+        var grammarSet = await db.GrammarSets.FirstOrDefaultAsync(gs => gs.Id == setId && gs.UserId == userId);
         if (grammarSet == null)
             return null;
 
@@ -42,15 +35,15 @@ public class GrammarService
         grammar.CreatedAt = DateTime.UtcNow;
         grammar.UpdatedAt = DateTime.UtcNow;
 
-        _db.Grammars.Add(grammar);
-        await _db.SaveChangesAsync();
+        db.Grammars.Add(grammar);
+        await db.SaveChangesAsync();
 
         return grammar;
     }
 
     public async Task<Grammar?> UpdateGrammarAsync(Guid grammarId, Guid setId, Grammar updatedGrammar, Guid userId)
     {
-        var grammar = await _db.Grammars
+        var grammar = await db.Grammars
             .FirstOrDefaultAsync(g => g.Id == grammarId && 
                                      g.GrammarSetId == setId && 
                                      g.UserId == userId);
@@ -62,15 +55,15 @@ public class GrammarService
         grammar.Description = updatedGrammar.Description;
         grammar.UpdatedAt = DateTime.UtcNow;
 
-        _db.Grammars.Update(grammar);
-        await _db.SaveChangesAsync();
+        db.Grammars.Update(grammar);
+        await db.SaveChangesAsync();
 
         return grammar;
     }
 
     public async Task<bool> DeleteGrammarAsync(Guid grammarId, Guid setId, Guid userId)
     {
-        var grammar = await _db.Grammars
+        var grammar = await db.Grammars
             .FirstOrDefaultAsync(g => g.Id == grammarId && 
                                      g.GrammarSetId == setId && 
                                      g.UserId == userId);
@@ -78,8 +71,8 @@ public class GrammarService
         if (grammar == null)
             return false;
 
-        _db.Grammars.Remove(grammar);
-        await _db.SaveChangesAsync();
+        db.Grammars.Remove(grammar);
+        await db.SaveChangesAsync();
         return true;
     }
 
