@@ -1,0 +1,24 @@
+bin/
+obj/
+.lantern/
+**/*.db
+**/*.suo
+**/*.user
+**/*.vs/
+.vscode/
+.nuget/
+*.log
+*.md
+**/Migrations/
+**/*.db-journal
+**/langlearn.db
+**/langlearn.*
+**/.idea/
+**/*.lock.json
+**/Properties/launchSettings.json
+**/LangLearn.Backend.sln
+**/LangLearn.Backend.sln.DotSettings.user
+
+# Ignore Dockerfile and dockerignore from context if desired
+Dockerfile
+.dockerignore

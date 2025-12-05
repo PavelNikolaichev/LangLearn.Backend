@@ -5,6 +5,7 @@
 obj/
 LangLearn.Backend/obj/
 LangLearn.Backend/bin/
+LangLearn.Backend/publish/
 bin/
 
 *.db
