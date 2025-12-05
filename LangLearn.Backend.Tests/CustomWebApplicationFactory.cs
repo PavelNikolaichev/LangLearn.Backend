@@ -17,10 +17,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.ConfigureAppConfiguration((context, configBuilder) =>
         {
-            // Add in-memory configuration for JWT key
+            // Add in-memory configuration for JWT key (must be at least 256 bits for HS256)
             configBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
-                ["Jwt:Key"] = "default_secret_key_for_testing_should_be_long"
+                ["Jwt:Key"] = "test_secret_key_minimum_32_characters_required_for_hs256_algorithm!"
             });
         });
         builder.ConfigureServices(services =>

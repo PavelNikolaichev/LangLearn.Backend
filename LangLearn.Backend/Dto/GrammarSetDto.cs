@@ -12,4 +12,3 @@ public class GrammarSetDto
     public DateTime UpdatedAt { get; set; }
     public List<GrammarDto> Grammars { get; set; } = new();
 }
-

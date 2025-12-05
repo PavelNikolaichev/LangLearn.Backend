@@ -1,5 +1,3 @@
-using LangLearn.Backend.Dto;
-
 namespace LangLearn.Backend.Dto;
 
 public class DeckDto
@@ -11,4 +9,3 @@ public class DeckDto
     public DateTime UpdatedAt { get; set; }
     public List<FlashcardDto> Flashcards { get; set; } = new();
 }
-

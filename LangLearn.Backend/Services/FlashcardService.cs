@@ -17,10 +17,10 @@ public class FlashcardService(AppDbContext db)
     public async Task<FlashcardDto?> GetFlashcardByIdAsync(Guid flashcardId, Guid deckId, Guid userId)
     {
         var flashcard = await db.Flashcards
-            .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
-                                      fc.DeckId == deckId && 
-                                      fc.Deck != null && 
-                                      fc.Deck.UserId == userId);
+            .FirstOrDefaultAsync(fc => fc.Id == flashcardId &&
+                                       fc.DeckId == deckId &&
+                                       fc.Deck != null &&
+                                       fc.Deck.UserId == userId);
         return flashcard == null ? null : MapFlashcardToDto(flashcard);
     }
 
@@ -42,14 +42,15 @@ public class FlashcardService(AppDbContext db)
         return flashcard;
     }
 
-    public async Task<Flashcard?> UpdateFlashcardAsync(Guid flashcardId, Guid deckId, Flashcard updatedFlashcard, Guid userId)
+    public async Task<Flashcard?> UpdateFlashcardAsync(Guid flashcardId, Guid deckId, Flashcard updatedFlashcard,
+        Guid userId)
     {
         var flashcard = await db.Flashcards
-            .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
-                                      fc.DeckId == deckId && 
-                                      fc.Deck != null && 
-                                      fc.Deck.UserId == userId);
-        
+            .FirstOrDefaultAsync(fc => fc.Id == flashcardId &&
+                                       fc.DeckId == deckId &&
+                                       fc.Deck != null &&
+                                       fc.Deck.UserId == userId);
+
         if (flashcard == null)
             return null;
 
@@ -67,11 +68,11 @@ public class FlashcardService(AppDbContext db)
     public async Task<bool> DeleteFlashcardAsync(Guid flashcardId, Guid deckId, Guid userId)
     {
         var flashcard = await db.Flashcards
-            .FirstOrDefaultAsync(fc => fc.Id == flashcardId && 
-                                      fc.DeckId == deckId && 
-                                      fc.Deck != null && 
-                                      fc.Deck.UserId == userId);
-        
+            .FirstOrDefaultAsync(fc => fc.Id == flashcardId &&
+                                       fc.DeckId == deckId &&
+                                       fc.Deck != null &&
+                                       fc.Deck.UserId == userId);
+
         if (flashcard == null)
             return false;
 
